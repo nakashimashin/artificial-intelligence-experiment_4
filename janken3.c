@@ -2,8 +2,8 @@
 #include<limits.h>
 #include<time.h>
 
-#define MAX_DEPTH 18  // 先読みの深さ
-#define METHOD    1  // ミニマックス法を用いて探索(0)，アルファベータ法を用いて探索(1)
+#define MAX_DEPTH 13
+#define METHOD    1
 
 #define COM   1
 #define ENEMY 2
@@ -13,10 +13,12 @@
 #define ACTION_GUU   0
 #define ACTION_CHOKI 1
 #define ACTION_PAA   2
+#define ACTION_SPOCK 3
+#define ACTION_TOKAGE 4
 
 int actionList[MAX_DEPTH];
-int reward[3]  = { 0, 2, 5 };
-char action[3] = { 'G', 'C', 'P' };
+int reward[5]  = { 0, 2, 5, 2, 5 };
+char action[5] = { 'G', 'C', 'P', 'S', 'T' };
 
 int reverse(int);
 int minmax(int, int);
@@ -86,14 +88,14 @@ minmax(int who, int depth){
 	if (who == ENEMY){ bestEvaluation = INFINITY; }
 	
 	// グー・チョキ・パー全て調べる
-	for (i = 0; i <= 2; i++){
+	for (i = 0; i <= 4; i++){
 
 		actionList[depth] = i;
 
 		// 子ノードの評価値を再帰計算
 		evaluation = minmax(reverse(who), depth+1);
 
-		// 評価値を表示
+		// // 評価値を表示
 		// for (d = 0; d < MAX_DEPTH; d++){
 		// 	if (d <= depth) { printf("%c", action[actionList[d]]); }
 		// 	else { printf(" "); }
@@ -142,21 +144,21 @@ alphabeta(int who, int depth, int alpha, int beta){
 	if (who == ENEMY){ bestEvaluation =  INFINITY; }
 	
 	// グー・チョキ・パー全て調べる
-	for (i = 0; i <= 2; i++){
+	for (i = 0; i <= 4; i++){
 
 		actionList[depth] = i;
 
 		// 子ノードの評価値を再帰計算
 		evaluation = alphabeta(reverse(who), depth + 1, alpha, beta);
 		
-		// 評価値を表示
+		// // 評価値を表示
 		// for (d = 0; d < MAX_DEPTH; d++){
 		// 	if (d <= depth) { printf("%c", action[actionList[d]]); }
 		// 	else { printf(" "); }
 		// }
 		// printf(" : %3d\n", evaluation);
 		
-		// ベータカット
+		// // ベータカット
 		// if (who == COM   && evaluation >= beta)  { printf("beta cut\n"); return evaluation; }
 		// // アルファカット
 		// if (who == ENEMY && evaluation <= alpha) { printf("alpha cut\n"); return evaluation; }
@@ -197,7 +199,13 @@ eval(void){
 		else factor = -1;
 		
 		if (actionList[d] == ACTION_CHOKI && actionList[d - 1] == ACTION_PAA) { evaluation += factor * reward[ACTION_CHOKI]; }
+        if (actionList[d] == ACTION_CHOKI && actionList[d - 1] == ACTION_TOKAGE) { evaluation += factor * reward[ACTION_CHOKI]; }
 		if (actionList[d] == ACTION_PAA   && actionList[d - 1] == ACTION_GUU) { evaluation += factor * reward[ACTION_PAA]; }
+        if (actionList[d] == ACTION_PAA   && actionList[d - 1] == ACTION_SPOCK) { evaluation += factor * reward[ACTION_PAA]; }
+        if (actionList[d] == ACTION_SPOCK && actionList[d - 1] == ACTION_GUU) { evaluation += factor * reward[ACTION_SPOCK]; }
+        if (actionList[d] == ACTION_SPOCK && actionList[d - 1] == ACTION_CHOKI) { evaluation += factor * reward[ACTION_SPOCK]; }
+        if (actionList[d] == ACTION_TOKAGE && actionList[d - 1] == ACTION_PAA) { evaluation += factor * reward[ACTION_TOKAGE]; }
+        if (actionList[d] == ACTION_TOKAGE && actionList[d - 1] == ACTION_SPOCK) { evaluation += factor * reward[ACTION_TOKAGE]; }
 	}
 
 	return evaluation;
